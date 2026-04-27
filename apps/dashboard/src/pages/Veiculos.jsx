@@ -14,10 +14,34 @@ const Veiculos = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('veiculos')
-        .select('id, marca, modelo, ano, cor, placa, porte, cliente_id, cliente:clientes(nome)');
+        .select(`
+          id, marca, modelo, ano, cor, placa, porte, cliente_id, 
+          cliente:clientes(nome),
+          ordens_servico ( fotos_entrada, criado_em )
+        `);
       
       if (error) throw error;
-      setVehicles(data || []);
+
+      const vehiclesWithPhotos = (data || []).map(v => {
+        let photoUrl = null;
+        if (v.ordens_servico && v.ordens_servico.length > 0) {
+          const osWithPhotos = v.ordens_servico
+            .filter(os => os.fotos_entrada && os.fotos_entrada.length > 0)
+            .sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em));
+            
+          if (osWithPhotos.length > 0) {
+            const photoPath = osWithPhotos[0].fotos_entrada[0];
+            if (photoPath.startsWith('http')) {
+              photoUrl = photoPath;
+            } else {
+              photoUrl = `https://nnpwqylirlmrqubdfxk.supabase.co/storage/v1/object/public/os-fotos/${photoPath}`;
+            }
+          }
+        }
+        return { ...v, photoUrl };
+      });
+
+      setVehicles(vehiclesWithPhotos);
     } catch (error) {
       console.error('Erro ao buscar veículos:', error.message);
     } finally {
@@ -87,9 +111,14 @@ const Veiculos = () => {
               <div style={{ 
                 width: '40px', height: '40px', borderRadius: '8px', 
                 backgroundColor: 'var(--bg-page)', display: 'flex', 
-                alignItems: 'center', justifyContent: 'center', color: 'var(--gold)' 
+                alignItems: 'center', justifyContent: 'center', color: 'var(--gold)',
+                overflow: 'hidden'
               }}>
-                <Car size={24} />
+                {item.photoUrl ? (
+                  <img src={item.photoUrl} alt={`${item.marca} ${item.modelo}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <Car size={24} />
+                )}
               </div>
               <span style={{ backgroundColor: 'var(--border)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', color: 'var(--text-primary)' }}>
                 {item.porte || 'MÉDIO'}

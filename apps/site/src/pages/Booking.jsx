@@ -29,8 +29,12 @@ const Booking = () => {
 
   useEffect(() => {
     const fetchServices = async () => {
-      const { data } = await supabase.from('servicos').select('*');
-      if (data) setServicesList(data);
+      const { data } = await supabase.from('servicos').select('*').eq('ativo', true);
+      if (data) {
+        // Remover duplicatas de nome na interface
+        const uniqueServices = data.filter((v, i, a) => a.findIndex(t => (t.nome === v.nome)) === i);
+        setServicesList(uniqueServices);
+      }
     };
     fetchServices();
   }, []);
@@ -445,7 +449,7 @@ const Booking = () => {
                                   fontSize: '12px', 
                                   textAlign: 'center', 
                                   cursor: isOccupied ? 'not-allowed' : 'pointer',
-                                  backgroundColor: formData.time === t ? 'rgba(201, 168, 76, 0.2)' : 'transparent',
+                                  backgroundColor: formData.time === t ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
                                   borderColor: formData.time === t ? 'var(--gold)' : 'var(--border)',
                                   opacity: isOccupied ? 0.3 : 1
                                 }}
@@ -499,6 +503,21 @@ const Booking = () => {
           </AnimatePresence>
         </div>
       </section>
+      <style dangerouslySetInnerHTML={{ __html: `
+        input[type="date"]::-webkit-calendar-picker-indicator {
+          filter: invert(1);
+          cursor: pointer;
+          opacity: 0.8;
+        }
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+          -webkit-box-shadow: 0 0 0px 1000px #222222 inset !important;
+          -webkit-text-fill-color: #F0EDE8 !important;
+          caret-color: #F0EDE8;
+        }
+      `}} />
     </div>
   );
 };

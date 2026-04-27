@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, User, Car, Phone, Mail, MapPin, History } from 'lucide-react';
+import { ChevronLeft, User, Car, Phone, Mail, MapPin, History, Cake, Pencil } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useModal } from '../context/ModalContext';
 import { supabase } from '@carluxe/shared';
@@ -34,13 +34,35 @@ const ClienteDetalhe = () => {
       }
       setCliente(clienteData);
 
-      // 2. Buscar veículos reais do cliente
+      // 2. Buscar veículos reais do cliente com fotos
       const { data: veiculosData } = await supabase
         .from('veiculos')
-        .select('*')
+        .select(`
+          *,
+          ordens_servico ( fotos_entrada, criado_em )
+        `)
         .eq('cliente_id', id)
         .order('criado_em', { ascending: false });
-      setVeiculos(veiculosData || []);
+        
+      const veiculosComFotos = (veiculosData || []).map(v => {
+        let photoUrl = null;
+        if (v.ordens_servico && v.ordens_servico.length > 0) {
+          const osWithPhotos = v.ordens_servico
+            .filter(os => os.fotos_entrada && os.fotos_entrada.length > 0)
+            .sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em));
+            
+          if (osWithPhotos.length > 0) {
+            const photoPath = osWithPhotos[0].fotos_entrada[0];
+            if (photoPath.startsWith('http')) {
+              photoUrl = photoPath;
+            } else {
+              photoUrl = `https://nnpwqylirlmrqubdfxk.supabase.co/storage/v1/object/public/os-fotos/${photoPath}`;
+            }
+          }
+        }
+        return { ...v, photoUrl };
+      });
+      setVeiculos(veiculosComFotos);
 
       // 3. Buscar histórico real de OS do cliente
       const { data: ordensData } = await supabase
@@ -95,8 +117,18 @@ const ClienteDetalhe = () => {
         {/* Coluna Esquerda - Perfil e Veículos */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Card Dados */}
-          <div className="card">
-            <h3 className="label-gold" style={{ marginBottom: '20px' }}>Dados do Cliente</h3>
+          <div className="card" style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 className="label-gold" style={{ marginBottom: 0 }}>Dados do Cliente</h3>
+              <button 
+                onClick={() => openEditClientModal(cliente)}
+                className="btn-ghost"
+                style={{ padding: '4px', height: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
+                title="Editar Perfil"
+              >
+                <Pencil size={18} />
+              </button>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <Phone size={16} color="var(--text-muted)" />
@@ -121,6 +153,14 @@ const ClienteDetalhe = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <MapPin size={16} color="var(--text-muted)" />
                 <span style={{ fontSize: '13px' }}>{cliente.endereco || 'Endereço não cadastrado'}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Cake size={16} color="var(--text-muted)" />
+                <span style={{ fontSize: '13px' }}>
+                  {cliente.data_nascimento 
+                    ? new Date(cliente.data_nascimento + 'T12:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }) 
+                    : 'Não informado'}
+                </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <User size={16} color="var(--text-muted)" />
@@ -151,7 +191,18 @@ const ClienteDetalhe = () => {
                     alignItems: 'center'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <Car size={20} color="var(--gold)" />
+                      <div style={{ 
+                        width: '40px', height: '40px', borderRadius: '8px', 
+                        backgroundColor: 'var(--bg-page)', display: 'flex', 
+                        alignItems: 'center', justifyContent: 'center', color: 'var(--gold)',
+                        overflow: 'hidden'
+                      }}>
+                        {v.photoUrl ? (
+                          <img src={v.photoUrl} alt={`${v.marca} ${v.modelo}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <Car size={24} />
+                        )}
+                      </div>
                       <div>
                         <p style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{v.modelo} {v.marca}</p>
                         <p style={{ fontSize: '12px', color: 'var(--gold)' }}>{v.placa}</p>

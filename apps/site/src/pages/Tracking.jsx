@@ -185,9 +185,9 @@ const Tracking = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+              <div className="tracking-content-grid">
                 {/* Timeline */}
-                <div style={{ padding: '40px', borderRight: '1px solid var(--border)' }}>
+                <div className="tracking-timeline-col">
                   <span className="label-tag" style={{ display: 'block', marginBottom: '32px', fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', letterSpacing: '1px' }}>STATUS DO SERVIÇO</span>
                   <div className="flex flex-col gap-0" style={{ display: 'flex', flexDirection: 'column' }}>
                     {getTimeline(selectedResult).map((item, idx, arr) => (
@@ -236,13 +236,13 @@ const Tracking = () => {
                 </div>
 
                 {/* Photos & Message */}
-                <div style={{ padding: '40px' }}>
+                <div className="tracking-photos-col">
                   <span className="label-tag" style={{ display: 'block', marginBottom: '32px', fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', letterSpacing: '1px' }}>FOTOS DO VEÍCULO</span>
                   
                   {selectedResult.fotos_entrada && selectedResult.fotos_entrada.length > 0 ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '40px' }}>
+                    <div className="photos-container">
                       {selectedResult.fotos_entrada.map((photo, i) => (
-                        <div key={i} style={{ aspectRatio: '1/1', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                        <div key={i} className="photo-item">
                           <img src={photo} alt={`Foto do veículo ${i+1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                       ))}
@@ -254,11 +254,7 @@ const Tracking = () => {
                     </div>
                   )}
 
-                  <div style={{ backgroundColor: 'var(--bg-main)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                    <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-primary)' }}>
-                      {selectedResult.observacoes || '🏎️ Seu carro está em boas mãos. Nossa equipe está trabalhando com cuidado e precisão.'}
-                    </p>
-                  </div>
+
                 </div>
               </div>
             </div>
@@ -283,6 +279,55 @@ const Tracking = () => {
           0% { transform: scale(0.95); opacity: 0.7; }
           50% { transform: scale(1.05); opacity: 1; }
           100% { transform: scale(0.95); opacity: 0.7; }
+        }
+        
+        .tracking-content-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+        .tracking-timeline-col {
+          padding: 40px;
+          order: 2;
+        }
+        .tracking-photos-col {
+          padding: 40px;
+          border-bottom: 1px solid var(--border);
+          order: 1;
+        }
+        .photos-container {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 8px;
+          margin-bottom: 40px;
+        }
+        .photo-item {
+          width: 100%;
+          height: 200px;
+          border-radius: 8px;
+          overflow: hidden;
+          border: 1px solid var(--border);
+        }
+
+        @media (min-width: 768px) {
+          .tracking-content-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+          .tracking-timeline-col {
+            order: 1;
+            border-right: 1px solid var(--border);
+            border-bottom: none;
+          }
+          .tracking-photos-col {
+            order: 2;
+            border-bottom: none;
+          }
+          .photos-container {
+            grid-template-columns: repeat(3, 1fr);
+          }
+          .photo-item {
+            aspect-ratio: 1/1;
+            height: auto;
+          }
         }
       `}} />
     </div>

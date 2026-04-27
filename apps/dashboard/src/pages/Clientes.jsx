@@ -193,13 +193,6 @@ const Clientes = () => {
                           >
                             <Eye size={18} />
                           </Link>
-                          <button 
-                            className="btn-ghost" 
-                            title="Editar"
-                            onClick={() => openEditClientModal(row)}
-                          >
-                            <Edit2 size={18} />
-                          </button>
                           <button
                             onClick={() => confirmarRemocao(row)}
                             title="Remover cliente"

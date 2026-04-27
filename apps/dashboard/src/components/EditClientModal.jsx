@@ -11,7 +11,8 @@ const EditClientModal = () => {
     telefone: '',
     email: '',
     endereco: '',
-    observacoes: ''
+    observacoes: '',
+    data_nascimento: ''
   });
 
   useEffect(() => {
@@ -21,7 +22,8 @@ const EditClientModal = () => {
         telefone: selectedClientData.telefone || '',
         email: selectedClientData.email || '',
         endereco: selectedClientData.endereco || '',
-        observacoes: selectedClientData.observacoes || ''
+        observacoes: selectedClientData.observacoes || '',
+        data_nascimento: selectedClientData.data_nascimento || ''
       });
     }
   }, [isEditClientModalOpen, selectedClientData]);
@@ -48,6 +50,7 @@ const EditClientModal = () => {
           email: formData.email,
           endereco: formData.endereco,
           observacoes: formData.observacoes,
+          data_nascimento: formData.data_nascimento || null,
           atualizado_em: new Date().toISOString()
         })
         .eq('id', selectedClientData.id);
@@ -138,6 +141,18 @@ const EditClientModal = () => {
               className="input-field" 
               style={{ backgroundColor: 'var(--bg-page)' }}
               value={formData.endereco}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label className="label-gold">Data de Nascimento</label>
+            <input 
+              name="data_nascimento"
+              type="date" 
+              className="input-field" 
+              style={{ backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)' }}
+              value={formData.data_nascimento || ''}
               onChange={handleInputChange}
             />
           </div>
